@@ -1,0 +1,93 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Download</title>
+    <style>
+        a {
+            display: inline-block;
+            padding: 10px 10px;
+            margin-bottom: 5px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        a:hover {
+            background-color: #3e8e41;
+        }
+    </style>
+    <script>
+        window.download = function (filename) {
+            const xhr = new XMLHttpRequest();
+            const url = '/download';
+            const data = {
+                file: filename,
+            };
+
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.responseType = 'blob';
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    const blob = xhr.response;
+                    const url = URL.createObjectURL(blob);
+
+                    const link = document.createElement('a');
+                    link.setAttribute('id', Math.random());
+                    link.setAttribute('download', filename);
+                    link.setAttribute('href', url);
+                    document.body.appendChild(link);
+
+                    link.click();
+                    link.remove();
+                }
+            };
+
+            xhr.send(JSON.stringify(data));
+        }
+        window.onload = function () {
+            // create new XMLHttpRequest object
+            const xhr = new XMLHttpRequest();
+
+            // set up AJAX request
+            xhr.open('GET', '/downloadlist', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            // handle response
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const arr = JSON.parse(xhr.responseText);
+                    console.log(arr);
+                    const root = document.getElementById('list');
+                    for (let i in arr) {
+                        let filename = arr[i];
+                        const link = document.createElement('a');
+                        link.setAttribute('onclick', "window.download('" + filename + "'); return false;");
+                        link.textContent = filename;
+                        root.appendChild(link);
+                        root.appendChild(document.createElement('br'));
+                    }
+                } else {
+                    console.log('Error: ' + xhr.status);
+                }
+            };
+
+            // send AJAX request
+            xhr.send();
+        };
+    </script>
+</head>
+
+<body>
+    <div id="list">
+
+    </div>
+</body>
+
+</html>
