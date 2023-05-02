@@ -4,11 +4,19 @@ const fsPromise = require('fs/promises');
 const fs = require('fs');
 const readline = require('readline');
 const UPLOAD_DIR = 'upload_files';
+const TEXT_MSG_FILE = UPLOAD_DIR + "/P_text.txt";
 
 // init upload file directory
 if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR);
     console.log(`[init] Upload Directory '${UPLOAD_DIR}' created.`);
+}
+if (!fs.existsSync(TEXT_MSG_FILE)) {
+    fs.writeFile(TEXT_MSG_FILE, '', function (err) {
+        if (err) throw err;
+        console.log('File is created successfully.');
+    });
+    console.log(`[init] Text file '${TEXT_MSG_FILE}' created.`);
 }
 
 //form表单需要的中间件。
