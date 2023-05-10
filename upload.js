@@ -1,10 +1,12 @@
-var express = require('express');
-var app = express();
+const path = require('path');
 const fsPromise = require('fs/promises');
 const fs = require('fs');
 const readline = require('readline');
+const { getAllIPAddress, openBrowser } = require('./utils');
 const UPLOAD_DIR = 'upload_files';
 const TEXT_MSG_FILE = UPLOAD_DIR + "/P_text.txt";
+var express = require('express');
+var app = express();
 
 // init upload file directory
 if (!fs.existsSync(UPLOAD_DIR)) {
@@ -25,10 +27,12 @@ var mutipartMiddeware = mutipart();
 //临时文件的储存位置
 app.use(mutipart({ uploadDir: UPLOAD_DIR }));
 app.use(express.json());
+app.use('/public', express.static(path.join(__dirname, 'public')))
 
 app.set('port', process.env.PORT || 3001);
-app.listen(app.get('port'), function () {
-    console.log("Express started on http://localhost:" + app.get('port') + ',press Ctrl-C to terminate.');
+app.set('address', process.env.ADDRESS || '0.0.0.0');
+app.listen(app.get('port'), app.get('address'), function () {
+    console.log("Express started on http://" + app.get('address') + ":" + app.get('port') + ',press Ctrl-C to terminate.');
 });
 
 // INDEX
@@ -143,3 +147,23 @@ app.get('/messages', function (req, res) {
         res.end();
     });
 });
+
+app.get('/qrcode', function (req, res) {
+    res.type('text/html');
+    res.sendFile(__dirname + '/qrcode.html')
+});
+
+app.get('/showqrcode', function (req, res) {
+    const ipMap = getAllIPAddress();
+    const ipMapKeyIterator = ipMap.keys();
+    for (const k of ipMapKeyIterator) {
+        const arr = ipMap.get(k);
+        for (let i = 0; i < arr.length; i++) {
+            arr[i] = 'http://' + arr[i] + ':' + app.get('port');
+            // console.log(`${k} addr: ${arr[i]}`);
+        }
+    }
+    res.redirect('/qrcode?k=' + encodeURI(JSON.stringify([...ipMap])));
+});
+
+openBrowser('http://localhost:' + app.get('port') + '/showqrcode');
